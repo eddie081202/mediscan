@@ -1,0 +1,134 @@
+/* GRID */
+
+.scan-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+  min-height: 70vh;
+}
+
+/* LEFT */
+
+.scan-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-zone-wrapper {
+  width: 100%;
+  max-width: 800px;
+}
+
+/* DROP ZONE */
+
+.drop-zone {
+  border: 2px dashed #cfd3ff;
+  border-radius: 18px;
+  padding: 70px 40px;
+  text-align: center;
+  background: white;
+  width: 100%;
+}
+
+.drop-zone h3 {
+  margin-bottom: 10px;
+}
+
+.drop-zone span {
+  display: block;
+  margin-bottom: 15px;
+  color: gray;
+}
+
+.primary-btn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background: #5b5ce2;
+  color: white;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  margin-top: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+}
+
+.or {
+  margin: 12px 0;
+  color: gray;
+}
+
+/* RIGHT */
+
+.scan-right {
+  width: 100%;
+}
+
+.ocr-card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  width: 100%;
+  position: sticky;
+  top: 20px;
+}
+
+.ocr-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.ocr-card img {
+  width: 100%;
+  border-radius: 12px;
+  margin: 12px 0;
+}
+
+/* PROGRESS */
+
+.progress-box {
+  margin-top: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 14px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.progress-fill {
+  width: 70%;
+  height: 100%;
+  background: #5b5ce2;
+  border-radius: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .scan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ocr-card {
+    position: relative;
+    top: auto;
+  }
+
+  .scan-left {
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,132 @@
+.alt-wrapper {
+  max-width: 1200px;
+}
+
+/* HEADER */
+
+.alt-header {
+  margin-bottom: 18px;
+}
+
+.alt-header h1 {
+  margin-bottom: 4px;
+}
+
+.alt-header p {
+  color: #666;
+}
+
+/* SEARCH */
+
+.alt-search input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin-bottom: 14px;
+}
+
+/* FILTER BAR */
+
+.alt-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.alt-controls select {
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* GRID */
+
+.alt-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 22px;
+}
+
+/* CARD */
+
+.alt-card {
+  background: white;
+  padding: 22px;
+  border-radius: 18px;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.alt-card h2 {
+  margin-bottom: 12px;
+}
+
+/* BADGES */
+
+.badges {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.best {
+  background: #5b5ce2;
+  color: white;
+}
+
+.salt {
+  background: #e6f7ef;
+  color: #1a7f5a;
+}
+
+/* ROWS */
+
+.alt-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.label {
+  color: #666;
+}
+
+.value {
+  font-weight: 600;
+}
+
+.savings {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+/* BUTTON */
+
+.compare-btn {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #5b5ce2;
+  color: white;
+  cursor: pointer;
+}
+
+/* EMPTY */
+
+.alt-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 16px;
+}

@@ -1,0 +1,78 @@
+.med-wrapper {
+  max-width: 1200px;
+}
+
+/* HEADER */
+
+.med-header {
+  margin-bottom: 20px;
+}
+
+.med-header p {
+  color: #666;
+  margin-top: 4px;
+}
+
+/* SEARCH */
+
+.med-search input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+/* RESULTS GRID */
+
+.med-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
+
+.med-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.med-card h2 {
+  margin-bottom: 10px;
+}
+
+/* SECTIONS */
+
+.med-section {
+  margin-top: 12px;
+}
+
+.med-section strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* WARNING */
+
+.warning {
+  background: #fff3f3;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+/* EMPTY */
+
+.med-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 16px;
+}
+
+.med-loading {
+  grid-column: 1 / -1;
+}
