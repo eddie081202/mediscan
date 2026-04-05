@@ -16,7 +16,7 @@ export const getAlternatives = async (query) => {
         {
           id: 2,
           name: "Mox 500mg",
-          price: 8,
+          price: 13,
           originalPrice: 15,
           salts: "Amoxicillin",
           saltMatch: true,
@@ -35,3 +35,39 @@ export const getAlternatives = async (query) => {
     }, 400);
   });
 };
+
+/*
+import { supabase } from "../supabaseClient";
+
+export const getAlternatives = async (query) => {
+  if (!query || query.trim() === "") return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("medicines")
+      .select(`
+        id,
+        name,
+        price,
+        originalPrice,
+        salts,
+        saltMatch,
+        recommended
+      `)
+      .or(`name.ilike.%${query}%,salts.ilike.%${query}%`)
+      .order("recommended", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error("Supabase error:", error.message);
+      return [];
+    }
+
+    return data;
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return [];
+  }
+};
+
+*/

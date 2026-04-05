@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import "../styles/Login.css";
 
+import { signIn } from "../api/authApi";
+import { AuthContext } from "../context/AuthContext";
+
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); 
 
   const [form, setForm] = useState({
     email: "",
@@ -17,14 +21,17 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ DEMO LOGIN ACCOUNT
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (form.email === "demo@mediscan.com" && form.password === "123456") {
-      navigate("/dashboard"); // later route
+    const { data, error } = await signIn(form.email, form.password);
+
+    if (error) {
+      setError(error.message);
     } else {
-      setError("Invalid credentials. Try demo account.");
+      login(data.user);
+      navigate("/dashboard");
     }
   };
 
