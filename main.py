@@ -5,14 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
 import json
-from typing import Optional
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
 
+load_dotenv()
+
 app = FastAPI(title="MediScan+ API")
 
-# Allow CORS for development if needed
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,24 +22,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for frontend
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Make sure GEMINI_API_KEY is available in the environment variables
-# Initialize the client at runtime so it doesn't crash on import if the key is missing
 def get_genai_client():
     if not os.environ.get("GEMINI_API_KEY"):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable is not set.")
     return genai.Client()
 
-class PrescriptionData(BaseModel):
+class MedicationInfo(BaseModel):
     medication_name: str = Field(description="The name of the medication.")
-    usage_instructions: str = Field(description="Combined details of dosage, frequency, and specific directions on how to use or take the medication.")
-    warnings: Optional[str] = Field(default=None, description="Any side effects, warnings, or contraindications mentioned.")
-    start_date: Optional[str] = Field(default=None, description="The date to begin medication, if specified.")
-    end_date: Optional[str] = Field(default=None, description="The date to stop medication, if specified.")
-    additional_notes: Optional[str] = Field(default=None, description="Any other generic instructions or notes.")
+    usage_info: str = Field(description="A single sentence containing all usage information regarding dosage, frequency, and directions.")
+    additional_notes: str = Field(description="Any other instructions, warnings, or notes on the prescription.")
+
+class PrescriptionData(BaseModel):
+    medication: MedicationInfo = Field(description="The primary medication details extracted from the prescription.")
+    alternatives: list[str] = Field(
+        default=[],
+        description="A list of at least 3 alternative medication names."
+    )
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -57,27 +59,23 @@ async def extract_prescription(file: UploadFile = File(...)):
         client = get_genai_client()
         contents = await file.read()
         
-        # Prepare the image part for GenAI
         image_part = types.Part.from_bytes(
             data=contents,
             mime_type=file.content_type,
         )
         
-        prompt = "Carefully read this handwritten doctor's prescription and extract the requested details."
+        prompt = "Carefully read this handwritten doctor's prescription and extract the requested primary medication details. Additionally, generate a list of at least 3 alternative medication names (just the names, skip the rationale)."
         
-        # Call the model with structured outputs
-        # We use gemini-2.5-flash as it is extremely fast and capable for multimodal tasks
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=[image_part, prompt],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 response_schema=PrescriptionData,
-                temperature=0.1 # Low temperature for more deterministic extraction
+                temperature=0.1
             )
         )
         
-        # Parse the JSON string returned by Gemini into a dictionary
         extracted_data = json.loads(response.text)
         return JSONResponse(content=extracted_data)
         
