@@ -9,6 +9,10 @@ from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
 
+# Use the directory of this file as the base so the app works regardless of CWD
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 app = FastAPI(title="MediScan+ API")
 
 # Allow CORS for development if needed
@@ -21,15 +25,16 @@ app.add_middleware(
 )
 
 # Mount static files for frontend
-os.makedirs("static", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Make sure GEMINI_API_KEY is available in the environment variables
 # Initialize the client at runtime so it doesn't crash on import if the key is missing
 def get_genai_client():
-    if not os.environ.get("GEMINI_API_KEY"):
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable is not set.")
-    return genai.Client()
+    return genai.Client(api_key=api_key)
 
 class PrescriptionData(BaseModel):
     medication_name: str = Field(description="The name of the medication.")
@@ -39,11 +44,12 @@ class PrescriptionData(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
+    index_path = os.path.join(STATIC_DIR, "index.html")
     try:
-        with open("static/index.html", "r", encoding="utf-8") as f:
+        with open(index_path, "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "Frontend not found. Please create static/index.html"
+        raise HTTPException(status_code=404, detail="Frontend not found. Please create static/index.html")
 
 @app.post("/api/extract")
 async def extract_prescription(file: UploadFile = File(...)):
