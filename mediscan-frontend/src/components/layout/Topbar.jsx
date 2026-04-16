@@ -17,7 +17,7 @@ export default function Topbar() {
           alt="profile"
         />
         <div>
-          <strong>{user?.user_metadata?.name || "User"}</strong>
+          <strong>{user?.user_metadata?.full_name || "User"}</strong>
         </div>
       </div>
     </div>

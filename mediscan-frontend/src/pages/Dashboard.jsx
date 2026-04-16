@@ -27,7 +27,7 @@ export default function Dashboard() {
         <div className="dash-header">
           <div>
             <h1>
-              Hello, {user?.user_metadata?.name?.split(" ")[0] || "User"}
+              Hello, {user?.user_metadata?.full_name?.split(" ")[0] || "User"}
             </h1>
             <p>{data.stats.greeting}</p>
           </div>
