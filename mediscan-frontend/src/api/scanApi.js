@@ -10,6 +10,7 @@ export const processScan = async (file) => {
   });
 
   const extracted = payload.extracted || {};
+  const alternatives = Array.isArray(payload.alternatives) ? payload.alternatives : [];
   return {
     confidence: 94,
     date: new Date().toLocaleDateString(),
@@ -20,5 +21,8 @@ export const processScan = async (file) => {
       "No dosage details returned",
     preview: URL.createObjectURL(file),
     rawExtracted: extracted,
+    alternatives,
+    disclaimer: payload.disclaimer || "",
+    warning: payload.warning || "",
   };
 };

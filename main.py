@@ -1,14 +1,16 @@
 import json
 import os
 import sqlite3
+import asyncio
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 
 import bcrypt
 import httpx
 import jwt
 import uvicorn
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -17,7 +19,8 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(dotenv_path=BASE_DIR / ".env", override=True)
 
 app = FastAPI(title="MediScan+ Node 2 Backend", version="2.0.0")
 
@@ -27,6 +30,7 @@ OCR_SERVICE_URL = os.getenv("OCR_SERVICE_URL", "").strip()
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-only-change-me-please-set-32chars")
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_MINUTES = int(os.getenv("JWT_ACCESS_MINUTES", "120"))
+GEMINI_TIMEOUT_SECONDS = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "25"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -155,9 +159,37 @@ async def startup_event() -> None:
 
 
 def get_genai_client():
-    if not os.environ.get("GEMINI_API_KEY"):
+    api_key = (os.getenv("GEMINI_API_KEY") or "").strip()
+    if not api_key:
+        file_key = (dotenv_values(BASE_DIR / ".env").get("GEMINI_API_KEY") or "").strip()
+        if file_key:
+            api_key = file_key
+            os.environ["GEMINI_API_KEY"] = file_key
+
+    if not api_key:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
-    return genai.Client()
+    return genai.Client(api_key=api_key)
+
+
+async def _generate_gemini_content_with_timeout(client: genai.Client, **kwargs):
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(client.models.generate_content, **kwargs),
+            timeout=GEMINI_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail="Gemini request timed out. Please try again.")
+    except Exception as exc:
+        message = str(exc)
+        if "503" in message or "UNAVAILABLE" in message:
+            raise HTTPException(
+                status_code=503,
+                detail="Gemini is temporarily overloaded. Please try again in a moment.",
+            )
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini request failed. Please try again.",
+        )
 
 
 def _get_active_user_by_token(authorization: Optional[str]) -> sqlite3.Row:
@@ -181,6 +213,15 @@ def _get_active_user_by_token(authorization: Optional[str]) -> sqlite3.Row:
 
 async def get_current_user(authorization: Optional[str] = Header(default=None)) -> sqlite3.Row:
     return _get_active_user_by_token(authorization)
+
+
+async def get_current_user_optional(authorization: Optional[str] = Header(default=None)) -> Optional[sqlite3.Row]:
+    if not authorization:
+        return None
+    try:
+        return _get_active_user_by_token(authorization)
+    except HTTPException:
+        return None
 
 
 class RegisterRequest(BaseModel):
@@ -356,7 +397,8 @@ async def _extract_with_gemini(file: UploadFile) -> dict:
         "Read this prescription image and return strict JSON with fields: "
         "medication_name, dosage, frequency, additional_notes."
     )
-    response = client.models.generate_content(
+    response = await _generate_gemini_content_with_timeout(
+        client,
         model="gemini-2.5-flash",
         contents=[image_part, prompt],
         config=types.GenerateContentConfig(
@@ -379,7 +421,7 @@ def _safety_disclaimer() -> str:
     )
 
 
-def _generate_quick_alternatives(medication_name: str) -> dict:
+async def _generate_quick_alternatives(medication_name: str) -> dict:
     med_name = (medication_name or "").strip()
     if not med_name:
         return {
@@ -397,14 +439,28 @@ def _generate_quick_alternatives(medication_name: str) -> dict:
             f"Medication: {med_name}\n"
             "Disclaimer must clearly say this is not medical advice."
         )
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.2,
-            ),
-        )
+        try:
+            response = await _generate_gemini_content_with_timeout(
+                client,
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.2,
+                ),
+            )
+        except HTTPException:
+            return {
+                "alternatives": [],
+                "disclaimer": _safety_disclaimer(),
+                "is_medical_advice": False,
+            }
+        except Exception:
+            return {
+                "alternatives": [],
+                "disclaimer": _safety_disclaimer(),
+                "is_medical_advice": False,
+            }
         try:
             data = json.loads(response.text)
             if not isinstance(data, dict):
@@ -443,7 +499,7 @@ async def extract_compat(file: UploadFile = File(...)):
         if upstream.status_code >= 400:
             raise HTTPException(status_code=502, detail=f"OCR service error: {parsed}")
         med_name = parsed.get("medication_name", "") if isinstance(parsed, dict) else ""
-        quick_alt = _generate_quick_alternatives(med_name)
+        quick_alt = await _generate_quick_alternatives(med_name)
         return {
             "extracted": parsed,
             "alternatives": quick_alt.get("alternatives", []),
@@ -451,8 +507,25 @@ async def extract_compat(file: UploadFile = File(...)):
             "is_medical_advice": False,
         }
 
-    extracted = await _extract_with_gemini(file)
-    quick_alt = _generate_quick_alternatives(extracted.get("medication_name", ""))
+    try:
+        extracted = await _extract_with_gemini(file)
+    except HTTPException as exc:
+        # Keep scan UX responsive when upstream AI is temporarily unavailable.
+        if exc.status_code in (502, 503, 504):
+            return {
+                "extracted": {
+                    "medication_name": "",
+                    "dosage": "",
+                    "frequency": "",
+                    "additional_notes": "",
+                },
+                "alternatives": [],
+                "disclaimer": _safety_disclaimer(),
+                "is_medical_advice": False,
+                "warning": exc.detail,
+            }
+        raise
+    quick_alt = await _generate_quick_alternatives(extracted.get("medication_name", ""))
     return {
         "extracted": extracted,
         "alternatives": quick_alt.get("alternatives", []),
@@ -505,7 +578,7 @@ async def medication_guidance(setid: str, current_user: sqlite3.Row = Depends(ge
 @app.post("/api/medications/alternatives")
 async def medication_alternatives(
     payload: AlternativeRequest,
-    current_user: sqlite3.Row = Depends(get_current_user),
+    current_user: Optional[sqlite3.Row] = Depends(get_current_user_optional),
 ):
     medication_name = payload.medication_name.strip()
     if not medication_name:
@@ -524,18 +597,46 @@ async def medication_alternatives(
             "Include a short 'disclaimer' field reminding users to verify with clinicians."
         )
         client = get_genai_client()
-        gemini_response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.2,
-            ),
-        )
         try:
-            alternatives_response = json.loads(gemini_response.text)
-        except json.JSONDecodeError:
-            alternatives_response = {"alternatives": [], "disclaimer": "Could not parse Gemini response."}
+            gemini_response = await _generate_gemini_content_with_timeout(
+                client,
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.2,
+                ),
+            )
+            try:
+                alternatives_response = json.loads(gemini_response.text)
+            except json.JSONDecodeError:
+                alternatives_response = {"alternatives": [], "disclaimer": "Could not parse Gemini response."}
+        except HTTPException:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.get(_daily_med_url("spls.json"), params={"drug_name": medication_name})
+            if r.status_code != 200:
+                raise HTTPException(status_code=502, detail="Alternative lookup failed.")
+            items = r.json().get("data", [])
+            unique_titles = []
+            seen = set()
+            for row in items:
+                title = row.get("title")
+                if title and title not in seen:
+                    seen.add(title)
+                    unique_titles.append(title)
+                if len(unique_titles) >= 5:
+                    break
+            alternatives_response = {
+                "alternatives": [
+                    {
+                        "name": title,
+                        "rationale": "Matched similar DailyMed listing.",
+                        "caution": "Confirm suitability with a clinician.",
+                    }
+                    for title in unique_titles
+                ],
+                "disclaimer": "Fallback suggestions generated without Gemini.",
+            }
     else:
         async with httpx.AsyncClient(timeout=15.0) as client:
             r = await client.get(_daily_med_url("spls.json"), params={"drug_name": medication_name})
@@ -571,42 +672,43 @@ async def medication_alternatives(
     )
     alternatives_response["is_medical_advice"] = False
 
-    conn = _get_connection()
-    conn.execute(
-        """
-        INSERT INTO suggestion_history (user_id, medication_name, response_json, created_at)
-        VALUES (?, ?, ?, ?)
-        """,
-        (
-            current_user["user_id"],
-            medication_name,
-            json.dumps(alternatives_response),
-            _utc_now().isoformat(),
-        ),
-    )
-    conn.execute(
-        """
-        INSERT INTO user_records (user_id, medication_name, dosage, frequency, notes, source, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            current_user["user_id"],
-            medication_name,
-            "",
-            "",
-            json.dumps(
-                {
-                    "type": "alternative_suggestion",
-                    "alternatives_count": len(alternatives_response.get("alternatives", [])),
-                    "disclaimer": alternatives_response["disclaimer"],
-                }
+    if current_user:
+        conn = _get_connection()
+        conn.execute(
+            """
+            INSERT INTO suggestion_history (user_id, medication_name, response_json, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                current_user["user_id"],
+                medication_name,
+                json.dumps(alternatives_response),
+                _utc_now().isoformat(),
             ),
-            "alternative_suggestion",
-            _utc_now().isoformat(),
-        ),
-    )
-    conn.commit()
-    conn.close()
+        )
+        conn.execute(
+            """
+            INSERT INTO user_records (user_id, medication_name, dosage, frequency, notes, source, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                current_user["user_id"],
+                medication_name,
+                "",
+                "",
+                json.dumps(
+                    {
+                        "type": "alternative_suggestion",
+                        "alternatives_count": len(alternatives_response.get("alternatives", [])),
+                        "disclaimer": alternatives_response["disclaimer"],
+                    }
+                ),
+                "alternative_suggestion",
+                _utc_now().isoformat(),
+            ),
+        )
+        conn.commit()
+        conn.close()
 
     return alternatives_response
 

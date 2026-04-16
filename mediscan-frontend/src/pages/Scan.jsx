@@ -11,6 +11,7 @@ export default function Scan() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
@@ -20,15 +21,30 @@ export default function Scan() {
   const handleFile = async (selectedFile) => {
     if (!selectedFile) return;
 
+    setError("");
+    setResult(null);
+
+    if (!selectedFile.type?.startsWith("image/")) {
+      setFile(null);
+      setError("Please upload an image file (JPG, JPEG, or PNG).");
+      return;
+    }
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setFile(null);
+      setError("File is too large. Please upload an image under 5MB.");
+      return;
+    }
+
     setFile(selectedFile);
     setLoading(true);
-    setResult(null);
 
     try {
       const res = await processScan(selectedFile);
       setResult(res);
     } catch (err) {
       console.error("Scan failed:", err);
+      setError(err?.message || "Unable to process this image right now.");
     }
 
     setLoading(false);
@@ -43,6 +59,8 @@ export default function Scan() {
   const handleBrowse = (e) => {
     const selectedFile = e.target.files[0];
     handleFile(selectedFile);
+    // Allow picking the same file again after an error.
+    e.target.value = "";
   };
 
   /* SAVE TO HISTORY*/
@@ -64,6 +82,19 @@ export default function Scan() {
     }
 
     navigate("/history");
+  };
+
+  const handleFindAlternatives = () => {
+    const medName = (result?.medicine || "").trim();
+    if (!medName) {
+      setError("Medication name is missing. Please edit details first.");
+      return;
+    }
+    navigate(`/alternatives?q=${encodeURIComponent(medName)}`, {
+      state: {
+        prefillAlternatives: Array.isArray(result?.alternatives) ? result.alternatives : [],
+      },
+    });
   };
 
   /* UI*/
@@ -99,12 +130,17 @@ export default function Scan() {
                 onDragOver={(e) => e.preventDefault()}
               >
                 <h3>Drag & drop prescription here</h3>
-                <span>Supported formats: JPG, PNG, PDF (Max 5MB)</span>
+                <span>Supported formats: JPG, PNG (Max 5MB)</span>
 
                 {/* FILE BROWSE */}
                 <label className="primary-btn">
                   Select File from Computer
-                  <input type="file" hidden onChange={handleBrowse} />
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    hidden
+                    onChange={handleBrowse}
+                  />
                 </label>
 
                 <div className="or">OR</div>
@@ -114,13 +150,31 @@ export default function Scan() {
                   Camera Upload
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg"
                     capture="environment"
                     hidden
                     onChange={handleBrowse}
                   />
                 </label>
               </div>
+
+              {file && !loading && (
+                <p style={{ marginTop: "10px", fontSize: "0.9rem", color: "#6b7280" }}>
+                  Selected file: {file.name}
+                </p>
+              )}
+
+              {error && (
+                <p style={{ marginTop: "10px", color: "#dc2626", fontWeight: 500 }}>
+                  {error}
+                </p>
+              )}
+
+              {result?.warning && (
+                <p style={{ marginTop: "10px", color: "#b45309", fontWeight: 500 }}>
+                  {result.warning}
+                </p>
+              )}
 
               {/* LOADING */}
               {loading && (
@@ -159,6 +213,40 @@ export default function Scan() {
                 <button className="primary-btn" onClick={handleSaveToHistory}>
                   Save to History
                 </button>
+
+                <button
+                  className="secondary-btn"
+                  onClick={handleFindAlternatives}
+                >
+                  Find Alternatives
+                </button>
+
+                {Array.isArray(result.alternatives) && result.alternatives.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      padding: "10px",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "10px",
+                      background: "#f8fafc",
+                    }}
+                  >
+                    <p style={{ marginBottom: "8px", fontWeight: 600 }}>
+                      Suggested Alternatives
+                    </p>
+                    {result.alternatives.slice(0, 3).map((alt, idx) => (
+                      <p key={`${alt.name || "alt"}-${idx}`} style={{ margin: "6px 0" }}>
+                        <strong>{alt.name || "Unknown alternative"}</strong>
+                        {alt.rationale ? ` - ${alt.rationale}` : ""}
+                      </p>
+                    ))}
+                    {result.disclaimer && (
+                      <p style={{ marginTop: "8px", fontSize: "0.85rem", color: "#6b7280" }}>
+                        {result.disclaimer}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <button
                   className="secondary-btn"
