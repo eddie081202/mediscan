@@ -1,0 +1,400 @@
+/* ─── GRID ───────────────────────────────────────────────── */
+
+.scan-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ─── LEFT — upload zone ─────────────────────────────────── */
+
+.scan-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-zone-wrapper {
+  width: 100%;
+  max-width: 800px;
+}
+
+.drop-zone {
+  border: 2px dashed #cfd3ff;
+  border-radius: 18px;
+  padding: 70px 40px;
+  text-align: center;
+  background: white;
+  width: 100%;
+}
+
+.drop-zone h3 {
+  margin-bottom: 10px;
+}
+
+.drop-zone span {
+  display: block;
+  margin-bottom: 15px;
+  color: gray;
+}
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+
+.primary-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  background: #5b5ce2;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover {
+  background: #4a4bcc;
+}
+
+.secondary-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.secondary-btn:hover {
+  background: #f5f5ff;
+  border-color: #5b5ce2;
+}
+
+.or {
+  margin: 12px 0;
+  color: gray;
+}
+
+/* ─── RIGHT — OCR card ───────────────────────────────────── */
+
+.scan-right {
+  width: 100%;
+}
+
+.ocr-card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  width: 100%;
+  position: sticky;
+  top: 20px;
+}
+
+.ocr-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.confidence-badge {
+  font-size: 12px;
+  font-weight: 600;
+  background: #eef0ff;
+  color: #5b5ce2;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.ocr-card img {
+  width: 100%;
+  border-radius: 12px;
+  margin: 12px 0;
+  object-fit: cover;
+  max-height: 200px;
+}
+
+/* ─── FIELD ROWS ─────────────────────────────────────────── */
+
+.ocr-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ocr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: #f8f8ff;
+  border-radius: 10px;
+  border-left: 3px solid #5b5ce2;
+}
+
+.ocr-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ocr-value {
+  font-size: 14px;
+  color: #222;
+  font-weight: 500;
+}
+
+.medication-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #5b5ce2;
+}
+
+/* ─── NOTES ──────────────────────────────────────────────── */
+
+.ocr-notes {
+  background: #fffbeb;
+  border: 1px solid #f6d860;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.ocr-notes-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #b45309;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.ocr-notes p {
+  font-size: 13px;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── ACTIONS ────────────────────────────────────────────── */
+
+.ocr-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ocr-actions .primary-btn,
+.ocr-actions .secondary-btn {
+  flex: 1;
+  margin-top: 0;
+  text-align: center;
+}
+
+/* ─── LOADING ────────────────────────────────────────────── */
+
+.progress-box {
+  margin-top: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 14px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.progress-fill {
+  width: 70%;
+  height: 100%;
+  background: #5b5ce2;
+  border-radius: 10px;
+  animation: pulse-fill 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-fill {
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ALTERNATIVES PANEL — full width below the main grid
+═══════════════════════════════════════════════════════════ */
+
+.alternatives-panel {
+  margin-top: 36px;
+  background: white;
+  border-radius: 22px;
+  padding: 28px 28px 32px;
+  border: 1px solid #e8eaff;
+  box-shadow: 0 4px 24px rgba(91, 92, 226, 0.07);
+}
+
+.alt-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.alt-panel-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 6px;
+}
+
+.alt-panel-header p {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  max-width: 560px;
+}
+
+.alt-count-badge {
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #5b5ce2, #7c3aed);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* ─── ALTERNATIVE CARDS GRID ─────────────────────────────── */
+
+.alt-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.alt-card {
+  background: #fafbff;
+  border: 1px solid #e8eaff;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  cursor: default;
+}
+
+.alt-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(91, 92, 226, 0.12);
+  border-color: #c7caff;
+}
+
+.alt-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.alt-index {
+  font-size: 11px;
+  font-weight: 800;
+  color: #bbb;
+  letter-spacing: 0.5px;
+}
+
+.alt-class-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.alt-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.alt-salt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f4ff;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.alt-salt-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.alt-salt {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  line-height: 1.3;
+}
+
+.alt-reason {
+  font-size: 12.5px;
+  color: #666;
+  line-height: 1.55;
+  margin: 0;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  .scan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ocr-card {
+    position: relative;
+    top: auto;
+  }
+
+  .scan-left {
+    align-items: flex-start;
+  }
+
+  .alt-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .alt-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alternatives-panel {
+    padding: 20px 16px 24px;
+  }
+}

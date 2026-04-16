@@ -1,0 +1,13 @@
+{
+  "name": "mediscan-frontend-with-auth",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd mediscan-backend-api && python main.py",
+    "frontend": "cd mediscan-frontend && npm run dev",
+    "build": "cd mediscan-frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
