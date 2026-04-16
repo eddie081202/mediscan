@@ -1,3 +1,18 @@
+<<<<<<< HEAD
 node_modules
 package-lock.json
 .DS_Store
+=======
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.gemini/
+>>>>>>> ae3b9451f18a6e66cfd6355077c18278c1131c92
