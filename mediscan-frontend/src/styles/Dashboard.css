@@ -1,0 +1,171 @@
+.dashboard-wrapper {
+  max-width: 1400px;
+}
+
+/* HEADER */
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.dash-header h1 {
+  font-size: 28px;
+}
+
+.dash-header p {
+  color: #666;
+  margin-top: 4px;
+}
+
+.date-pill {
+  background: white;
+  border-radius: 12px;
+  padding: 8px 14px;
+  border: 1px solid #eee;
+}
+
+/* GRID */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 22px;
+}
+
+/* BANNER */
+
+.upload-banner {
+  background: linear-gradient(90deg, #5b5ce2, #6c6cff);
+  border-radius: 18px;
+  padding: 26px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.upload-banner h2 {
+  margin-bottom: 8px;
+}
+
+.primary-btn {
+  margin-top: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  color: #5b5ce2;
+  font-weight: 600;
+}
+
+.banner-icon {
+  font-size: 40px;
+  opacity: 0.8;
+}
+
+/* TABLE */
+
+.table-card {
+  margin-top: 18px;
+  background: white;
+  padding: 22px;
+  border-radius: 18px;
+}
+
+.table-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  color: #888;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 12px;
+}
+
+tbody tr:hover {
+  background: #f8f9ff;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.status.processed {
+  background: #e7f7ee;
+  color: green;
+}
+
+.status.analyzing {
+  background: #fff3e7;
+  color: orange;
+}
+
+/* RIGHT */
+
+.schedule-card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+}
+
+.schedule-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.schedule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.schedule-item:hover {
+  background: #f7f8ff;
+}
+
+.pill-btn {
+  background: #5b5ce2;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* INSIGHTS */
+
+.insight-wrapper {
+  margin-top: 20px;
+}
+
+.insight-card {
+  margin-top: 10px;
+  padding: 14px;
+  background: white;
+  border-radius: 14px;
+}
+
+@media (max-width: 1000px) {
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
