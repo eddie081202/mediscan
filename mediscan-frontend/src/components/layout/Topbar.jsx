@@ -1,23 +1,23 @@
 import { Bell } from "lucide-react";
-import { useDashboard } from "../../context/DashboardContext";
+import React, { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 export default function Topbar() {
-  const { data } = useDashboard();
+  const { user } = useContext(AuthContext);
 
-  if (!data) return null;
+  if (!user) return null;
 
   return (
     <div className="topbar">
-{/*}      <input className="search" placeholder="Search prescriptions, medications..." />*/}
+      {/*}      <input className="search" placeholder="Search prescriptions, medications..." />*/}
 
-      <div className="topbar-right">
-        <Bell size={20} />
-
-        <div className="profile">
-          <img src={data.user.avatar} alt="profile" />
-          <div>
-            <strong>{data.user.name}</strong>
-          </div>
+      <div className="profile">
+        <img
+          src={`https://ui-avatars.com/api/?name=${user?.user_metadata?.name}`}
+          alt="profile"
+        />
+        <div>
+          <strong>{user?.user_metadata?.name || "User"}</strong>
         </div>
       </div>
     </div>

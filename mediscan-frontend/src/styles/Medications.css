@@ -28,16 +28,15 @@
 
 .med-results {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: 1fr;
   gap: 20px;
 }
-
 /* CARD */
-
 .med-card {
   background: white;
-  padding: 20px;
-  border-radius: 16px;
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 
 .med-card h2 {
@@ -75,4 +74,18 @@
 
 .med-loading {
   grid-column: 1 / -1;
+}
+
+/* WARNINGS */
+.warning-header {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.warning-content {
+  margin-top: 10px;
+  line-height: 1.6;
+  color: #444;
 }

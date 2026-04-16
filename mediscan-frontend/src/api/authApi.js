@@ -9,12 +9,20 @@ export const signIn = async (email, password) => {
   return { data, error };
 };
 
-// SIGNUP (optional)
-export const signUp = async (email, password) => {
+// SIGNUP 
+export const signUp = async (email, password, name) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        name: name,
+      },
+    },
   });
+
+  console.log("SIGNUP RESPONSE:", data); // debug
+
   return { data, error };
 };
 

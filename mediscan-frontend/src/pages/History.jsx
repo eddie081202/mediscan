@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import "../styles/History.css";
 

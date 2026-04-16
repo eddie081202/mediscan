@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { getAlternatives } from "../api/alternativesApi";
 import "../styles/Alternatives.css";

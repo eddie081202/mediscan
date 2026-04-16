@@ -12,6 +12,9 @@ export const DashboardProvider = ({ children }) => {
 
   const loadDashboard = async () => {
     const res = await getDashboardData();
+
+    delete res.user;
+
     setData(res);
   };
 

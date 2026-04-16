@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { searchMedication } from "../api/medicationApi";
 import "../styles/Medications.css";
@@ -7,12 +7,12 @@ export default function Medications() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [openWarningId, setOpenWarningId] = useState(null);
 
-  /* HANDLE SEARCH */
-
+  /* =========================
+     HANDLE SEARCH (API CALL)
+  ========================= */
   const handleSearch = async (value) => {
-    setQuery(value);
-
     if (!value.trim()) {
       setResults([]);
       return;
@@ -25,13 +25,26 @@ export default function Medications() {
       setResults(res);
     } catch (err) {
       console.error("Medication search failed:", err);
+      setResults([]);
     }
 
     setLoading(false);
   };
 
-  /* UI */
+  /* =========================
+     DEBOUNCE (IMPORTANT)
+  ========================= */
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      handleSearch(query);
+    }, 400);
 
+    return () => clearTimeout(delay);
+  }, [query]);
+
+  /* =========================
+     UI
+  ========================= */
   return (
     <MainLayout>
       <div className="med-wrapper">
@@ -49,9 +62,9 @@ export default function Medications() {
         <div className="med-search">
           <input
             type="text"
-            placeholder="Search medication (e.g., Amoxicillin)"
+            placeholder="Search medication (e.g., Tylenol)"
             value={query}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </div>
 
@@ -59,10 +72,12 @@ export default function Medications() {
         <div className="med-results">
 
           {/* LOADING */}
-          {loading && <p className="med-loading">Searching medication...</p>}
+          {loading && (
+            <p className="med-loading">Searching medication...</p>
+          )}
 
           {/* EMPTY SEARCH STATE */}
-          {!loading && query && results.length === 0 && (
+          {!loading && query.trim() && results.length === 0 && (
             <div className="med-empty">
               <h3>No results found</h3>
               <p>Try searching another medication.</p>
@@ -97,8 +112,19 @@ export default function Medications() {
               </div>
 
               <div className="med-section warning">
-                <strong>Safety Warnings</strong>
-                <p>{med.warnings}</p>
+                <div
+                  className="warning-header"
+                  onClick={() =>
+                    setOpenWarningId(openWarningId === med.id ? null : med.id)
+                  }
+                >
+                  <strong>Safety Warnings</strong>
+                  <span>{openWarningId === med.id ? "▲" : "▼"}</span>
+                </div>
+
+                {openWarningId === med.id && (
+                  <p className="warning-content">{med.warnings}</p>
+                )}
               </div>
 
             </div>

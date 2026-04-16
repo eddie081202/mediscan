@@ -2,8 +2,12 @@ import MainLayout from "../components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { useDashboard } from "../context/DashboardContext";
 import "../styles/Dashboard.css";
+import React, { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+
 
 export default function Dashboard() {
+  const { user } = useContext(AuthContext);
   const { data } = useDashboard();
   const navigate = useNavigate();
 
@@ -22,7 +26,9 @@ export default function Dashboard() {
         {/* HEADER */}
         <div className="dash-header">
           <div>
-            <h1>Hello, {data.user.name.split(" ")[0]}</h1>
+            <h1>
+              Hello, {user?.user_metadata?.name?.split(" ")[0] || "User"}
+            </h1>
             <p>{data.stats.greeting}</p>
           </div>
           <div className="date-pill">{today}</div>
