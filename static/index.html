@@ -432,12 +432,17 @@
 
             const formData = new FormData();
             formData.append('file', currentFile);
+            const controller = new AbortController();
+            const timeoutMs = 25000;
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
             try {
                 const response = await fetch('/api/extract', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     const err = await response.json();
@@ -451,7 +456,12 @@
                 resultsSection.style.display = "block";
 
             } catch (error) {
-                showError(error.message);
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    showError("Request timed out after 25 seconds. Please try a smaller/clearer image or retry.");
+                } else {
+                    showError(error.message);
+                }
             } finally {
                 // Reset loading state
                 btnExtract.disabled = false;
